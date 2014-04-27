@@ -5,14 +5,14 @@ import  inspect
 
 def hook():
     pass
-def exposeTemplates():
+def exposeElements():
     modulePath = os.path.dirname(inspect.getfile(hook))
     filelist= os.listdir(modulePath)
     modulelist = [ f for f in filelist if  f.endswith('.ma')  ]
     for k in range(len(modulelist)):
         modulelist[k] = os.path.join(modulePath,modulelist[k])
     return modulelist
-def mergeTemplate(sourcePath,prfxToReplace,newModuleName):
+def merge(sourcePath,prfxToReplace,newModuleName):
     ## ------------------------------- first create temp module
     scrpDir = mc.internalVar(userScriptDir=True)
     localModuleToMerge = os.path.join(scrpDir,newModuleName+'.01.ma')
