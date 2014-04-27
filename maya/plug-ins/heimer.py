@@ -45,9 +45,6 @@ kPluginNodeVersion = "1.0.0"
 
 referenceVector = OpenMaya.MVector(1,0,0)
 class heimer(OpenMayaMPx.MPxNode):
-    targetPosition  = OpenMaya.MObject()
-    rotate          = OpenMaya.MObject() 
- 
     def __init__(self):
         OpenMayaMPx.MPxNode.__init__(self)
     def computeLocalOrient(self,Data):
