@@ -5,7 +5,7 @@ import  inspect
 import zipfile
 
 author = 'cedric bazillou 2013'
-version = 0.01
+version = 0.02
 
 class UI:
     def __init__(self):
@@ -16,12 +16,19 @@ class UI:
     def show(self):
         if mc.window(self.windowRef,q=True,ex=True) == True:
             mc.deleteUI(self.windowRef)
-        mc.window(self.windowRef , title="Slime dealer  %s"%version,  widthHeight=(self.canvasSize[0],self.canvasSize[1]),rtf=True,s=False )
+        mc.window(self.windowRef , title="CCW_Template Manager  %s"%version,  widthHeight=(self.canvasSize[0],self.canvasSize[1]),rtf=True,s=False )
  
         self.UI_TAB = mc.frameLayout(cll=False,lv=False,mw=5,w=self.canvasSize[0])
         mc.columnLayout( adjustableColumn=True, rs=5,w=self.canvasSize[0])
         
-        mc.button(l='Compile bundle',c=self.tmpleLib.compile_bundle)
+        bndList = self.tmpleLib.exposeZipTemplate()
+        if len(bndList) == 0:
+            mc.button(l='Compile bundle',c=self.tmpleLib.compile_bundle)
+        else:
+            bndList = self.tmpleLib.exposeZipTemplate()
+            for n in range(len(bndList) ):
+                templateCls = os.path.basename(bndList[n]).split('.zip')[0]
+                mc.button(l=templateCls,h=28)
         mc.showWindow( self.windowRef)
         mc.window( self.windowRef,e=True, widthHeight=(self.canvasSize[0],self.canvasSize[1]) )
 class lib:

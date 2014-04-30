@@ -1,14 +1,12 @@
 //Maya ASCII 2013 scene
 //Name: data.ma
-//Last modified: Tue, Apr 29, 2014 12:06:37 AM
-//Codeset: 1252
+
 requires maya "2013";
 requires "heimer.py" "1.0.0";
-currentUnit -l centimeter -a degree -t film;
 createNode transform -n "XX_ZERO";
-	addAttr -ci true -sn "heimerType" -ln "heimerType" -dt "string";
+	addAttr -ci true -sn "foodType" -ln "foodType" -dt "string";
 	addAttr -ci true -h true -m -sn "element" -ln "element" -at "double";
-	setAttr -l on -k on ".heimerType" -type "string" "WorldData";
+	setAttr -l on -k on ".foodType" -type "string" "World aim";
 	setAttr -s 4 ".element";
 	setAttr -s 4 ".element";
 createNode transform -n "XX_RefSpace" -p "XX_ZERO";

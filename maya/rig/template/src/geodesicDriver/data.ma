@@ -6,7 +6,7 @@ requires "geodesicWeight.py" "1.0.0";
 createNode transform -n "XX_ZERO";
 	addAttr -ci true -sn "foodType" -ln "foodType" -dt "string";
 	addAttr -ci true -h true -m -sn "element" -ln "element" -at "double";
-	setAttr ".t" -type "double3" 0.094910392002535801 0 0 ;
+	setAttr ".t" -type "double3" 0.0 0 0 ;
 	setAttr -l on ".foodType" -type "string" "geodesicWeight";
 	setAttr -s 4 ".element";
 	setAttr -s 4 ".element";
