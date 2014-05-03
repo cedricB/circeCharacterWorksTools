@@ -10,7 +10,7 @@ version = 0.02
 class UI:
     def __init__(self):
         self.windowRef ='CCW_templateUI'
-        self.tmpleLib =  lib()
+        self.tmpleLib =  IO()
         self.canvasSize =[430,400]
         self.UI_TAB = ''
         self.ToDelete = []
@@ -31,15 +31,15 @@ class UI:
     def rigthPanel_in_templateListing(self,anchor):
         rgtTab = mc.tabLayout( p=anchor,innerMarginWidth=5, innerMarginHeight=5,h=self.canvasSize[1]-52)
         mc.frameLayout(   mw=5,labelVisible=False,mh=5,p=rgtTab )
-        mc.button()
+        mc.text(l='')
         
         #--------------------------------------------------------
         mc.frameLayout(  mw=5,labelVisible=False,mh=5,p=rgtTab )
-        mc.button()
+        mc.text(l='')
         
         #--------------------------------------------------------
         mc.frameLayout(  mw=5,labelVisible=False,mh=5,p=rgtTab )
-        mc.button()
+        mc.text(l='')
         
         #######################################################################
         mc.tabLayout(rgtTab ,e=True,tabLabelIndex=[1,'Infos'])
@@ -73,7 +73,7 @@ class UI:
 
         mc.showWindow( self.windowRef)
         mc.window( self.windowRef,e=True, widthHeight=(self.canvasSize[0],self.canvasSize[1]) )
-class lib:
+class IO:
     def compile_bundle(self,*args):
         templateList = self.exposeBundles()
         if templateList is not None or len(templateList) > 0:
@@ -100,6 +100,8 @@ class lib:
         myzip.write( os.path.join( sourcePath ,'widget.py') ,  r'\widget.py'  )
         myzip.write( os.path.join( sourcePath ,'data.ma') ,  r'\data.ma') 
         myzip.close()
+
+
     def exposeZipTemplate(self):
         modulePath = os.path.dirname(inspect.getfile(self.merge))
         filelist= os.listdir(modulePath)
@@ -138,3 +140,12 @@ class lib:
         mc.file(localModuleToMerge,i=True)
         OpenMaya.MGlobal.displayInfo( '** %s was successfully merge in your scene'% newModuleName )
         mc.sysFile(localModuleToMerge,delete=True)  
+    def clean_asset_file():
+        pass
+class factory:
+    def expose_members():
+        pass
+    def process_root():
+        pass
+    def publish_driver():
+        pass
