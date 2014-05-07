@@ -5,6 +5,7 @@ import  inspect
 import zipfile
 from functools import partial
 import json
+import uuid
 
 '''
 * ..change is common
@@ -24,7 +25,7 @@ import json
 
 '''
 author = 'cedric bazillou 2013'
-version = 0.04
+version = 0.041
 
 class dishBuilder:
     def __init__(self):
@@ -142,7 +143,6 @@ class dishBuilder:
                     mc.warning(feedBackList[index])
             if erroChk == 0:
                 self.factory.publish_driver(root)
-                print 'publis succes'
     def validateRootData(self,*args):
         root = mc.textField( self.bentoRoot,q=True,tx=True)
         foodType = mc.textField( self.foodField,q=True,tx=True)
@@ -230,16 +230,24 @@ class dishBuilder:
         self.bundle_prgrss = mc.progressBar('CCW_TOOLS_bundle_prgrss')
 class dishEditor:
     def __init__(self):
-         self.canvasSize =[430,400]
-         self.IO =  IO()
-         self.InfosTab = ''
+        self.module=''
+        self.canvasSize =[430,400]
+        self.IO =  IO()
+        self.InfosTab       =  ''
+        self.bentoElements  =  ''
+        self.gourmetTab     =  ''
+        self.dishPrfx       =  ''
+        self.pathTxFld      =  ''
+        self.dishType       =  ''
+        self.dishTabTool    =  ''
+        self.factory = factory()
     def widget(self,widgetParent):
         mc.columnLayout( adjustableColumn=True, rs=5 ,p=widgetParent)
         mc.rowLayout(   numberOfColumns=3, 
                         columnWidth2=(80,(self.canvasSize[0]-80-20)),
                         adjustableColumn=2,cl2=('left','both' )  )
         mc.text(l=' Current Path :')
-        pathTxFld = mc.textField( 'buildEditor_UI_data_dir_txFld',ed=False  )
+        self.pathTxFld  = mc.textField( 'buildEditor_UI_data_dir_txFld',ed=False  )
         mc.setParent('..')
         mc.separator()
         anchorDock = mc.rowLayout(    numberOfColumns=2,
@@ -253,7 +261,7 @@ class dishEditor:
         self.bentosFactory_UI(anchorDock)
 
         modulePath = ''.join(os.path.dirname(inspect.getfile(self.exposedBentos_UI)))
-        mc.textField( pathTxFld,e=True,tx=modulePath)
+        mc.textField( self.pathTxFld ,e=True,tx=modulePath)
     def exposedBentos_UI(self,anchor):
         leftPanel = mc.frameLayout( collapsable=False,labelVisible=False, borderStyle='etchedIn',mw=5,mh=5,p=anchor )
         mc.columnLayout( adjustableColumn=True, rs=5 )
@@ -266,9 +274,8 @@ class dishEditor:
         for dish in dishList:
             dishName = os.path.basename(dish).split('.zip')[0]
             btn = mc.button(l=dishName,h=28,ann='test')
-            mc.button(btn,e=True,c=partial( self.switch_to_bent, dishName ,dish ))
-
-    def switch_to_bent(self,dishName,dishFile,*args):
+            mc.button(btn,e=True,c=partial( self.switch_module, dishName ,dish ))
+    def switch_module(self,dishName,dishFile,*args):
         archive = zipfile.ZipFile(dishFile, 'r')
         jsonFile = archive.read('dish.ini')
         jsondata = json.loads(jsonFile)  
@@ -278,39 +285,105 @@ class dishEditor:
         chldrn = mc.layout( self.InfosTab, query=True, childArray=True )
         for chld in chldrn:
             mc.deleteUI(chld)
-
-        mc.columnLayout( adjustableColumn=True ,p=self.InfosTab )
-        mc.text( 'CCW_TOOLS_DISHNAME_txFld', l='', h=36  )
-        #print jsondata['moduleInfos']
-        ll = """<html>
+        #-------------------------------------------------------------------
+        mc.columnLayout( adjustableColumn=True ,p=self.InfosTab ,rs=5)        
+        header = """<html>
             <body>
             <h1>%s</h1></body>
-        </html>
+            </html>
         """%(dishName )
-        mc.text( 'CCW_TOOLS_DISHNAME_txFld',e=True,l=ll,font='boldLabelFont')        
+        
+        self.dishType  = dishName
+        mc.text( self.module,e=True,l=header,font='boldLabelFont')        
         mc.scrollField( editable=False, wordWrap=True, text=jsondata['moduleInfos'] ,h=120)
-        mc.separator()
+        mc.separator()   
+        LimbMenu = mc.optionMenu( label='Limb type          ' )
+        mc.menuItem( label='arm                              ' )
+        mc.menuItem( label='leg                              ' )
+        mc.menuItem( label='spine                            ' )
+        mc.menuItem( label='head                             ' )
+        mc.menuItem( label='neck                             ' )
+        mc.menuItem( label='foot                             ' )
+        mc.menuItem( label='hand                             ' )
+        mc.optionMenu( LimbMenu ,e=True,changeCommand=partial(self.composePrfX,LimbMenu))
+
+        
+        ArticulationMenu =mc.optionMenu( label='Articulation       ' )    
+        mc.menuItem( label='shoulder                        ' )            
+        mc.menuItem( label='wrist                           ' )
+        mc.menuItem( label='elbow                           ' )
+        mc.menuItem( label='finger                          ' )
+        mc.menuItem( label='knee                            ' )
+        mc.menuItem( label='ankle                           ' )
+        mc.optionMenu( ArticulationMenu ,e=True,changeCommand=partial(self.composePrfX,ArticulationMenu))
+        
+        SideMenu = mc.optionMenu( label='Side                  ' )    
+        mc.menuItem( label='left              *l*            ' )            
+        mc.menuItem( label='right             *r*            ' )
+        mc.menuItem( label='center            *c*            ' )
+        mc.optionMenu( SideMenu ,e=True,changeCommand=partial(self.composePrfX,SideMenu))
+
+        self.dishPrfx       =  mc.textField()
+        mc.button(l='Import', h=42,c=self.validate_dish_before_merge )        
+        
+        mc.textScrollList( self.bentoElements , e=True,ra=True)
+        self.refresh_dishTabs_contents()
+    def validate_dish_before_merge(self,*args):
+        prx = mc.textField(  self.dishPrfx ,q=True,tx=True)
+        if len(prx)>1:
+            path = mc.textField( self.pathTxFld, q=True,tx=True)
+            dishFile = os.path.join( path,self.dishType+'.zip')
+            self.IO.merge( dishFile,'XX_',prx+'_')
+    def composePrfX (self,menuOpt ,*args):
+        prx = mc.textField(  self.dishPrfx ,q=True,tx=True)
+        module = mc.optionMenu(menuOpt,q=True,value=True).strip()
+        if len(prx)<1:
+            if '*' in module:
+                module = module.split('*')[1]
+            mc.textField(  self.dishPrfx ,e=True,tx=module)
+        else:
+            if '*'  in module:
+                module = module.split('*')[1]
+            mc.textField(  self.dishPrfx ,e=True,tx=prx+'_'+module )
     def bentosFactory_UI(self,anchor):
-        rgtTab = mc.tabLayout( p=anchor,innerMarginWidth=5, innerMarginHeight=5,h=self.canvasSize[1]-52)
-        self.InfosTab = mc.frameLayout(   mw=5,labelVisible=False,mh=5,p=rgtTab )
+        mc.columnLayout( adjustableColumn=True,p=anchor )
+        self.module= mc.text( 'CCW_TOOLS_DISHNAME_txFld', l='', h=36  )
+        self.dishTabTool = mc.tabLayout( innerMarginWidth=5, innerMarginHeight=5,h=self.canvasSize[1]-84)
+        self.InfosTab = mc.frameLayout(   mw=5,labelVisible=False,mh=5,p=self.dishTabTool )
         mc.text(l='')
 
         
         #--------------------------------------------------------
-        mc.frameLayout(  mw=5,labelVisible=False,mh=5,p=rgtTab )
+        mc.frameLayout(  mw=5,labelVisible=False,mh=5,p=self.dishTabTool )
         mc.text(l='')
         
         #--------------------------------------------------------
-        mc.frameLayout(  mw=5,labelVisible=False,mh=5,p=rgtTab )
-        mc.text(l='')
+        self.gourmetTab = mc.frameLayout(  mw=5,labelVisible=False,mh=5,p=self.dishTabTool )
+        mc.columnLayout( adjustableColumn=True )
+        self.bentoElements =  mc.textScrollList( 'CCW_TOOLS_bentoElements',numberOfRows=18, selectCommand=self.select_installedDish )
+        
+        
         
         #######################################################################
-        mc.tabLayout(rgtTab ,e=True,tabLabelIndex=[1,'Infos'])
-        mc.tabLayout(rgtTab ,e=True,tabLabelIndex=[2,'Tools'])
-        mc.tabLayout(rgtTab ,e=True,tabLabelIndex=[3,'Member list'])
         
+        mc.tabLayout(self.dishTabTool ,e=True,tabLabelIndex=[1,'Infos'])
+        mc.tabLayout(self.dishTabTool ,e=True,tabLabelIndex=[2,'Tools'])
+        mc.tabLayout(self.dishTabTool ,e=True,tabLabelIndex=[3,'Gourmet Manager'])
+
         dishList = self.IO.exposeZipTemplate()
-        self.switch_to_bent( os.path.basename(dishList[0]).split('.zip')[0],dishList[0] ) 
+        self.switch_module( os.path.basename(dishList[0]).split('.zip')[0],dishList[0] )         
+        mc.tabLayout(self.dishTabTool ,e=True,changeCommand=self.refresh_dishTabs_contents)
+    def select_installedDish(self,*args):
+        dish = mc.textScrollList( 'CCW_TOOLS_bentoElements',q=True,selectItem=True)
+        mc.select(dish,r=True)
+    def refresh_dishTabs_contents(self,*args):
+        currentTab = mc.tabLayout(self.dishTabTool ,q=True,selectTabIndex=True)
+        if currentTab == 3:
+            dishList = self.factory.collect_similar_dish(self.dishType)
+            mc.textScrollList( self.bentoElements ,e=True,ra=True)
+            if len(dishList)>0:
+                for dish in dishList:
+                    mc.textScrollList( self.bentoElements ,e=True,a=dish)
 class Tool:
     def __init__(self):
         self.windowRef ='CCW_bentoUI'
@@ -391,29 +464,49 @@ class IO:
             return None
     def merge(self,sourcePath,prfxToReplace,newModuleName):
         ## ------------------------------- first create temp module
+        ## ------------------------------- then name elements properly
         scrpDir = mc.internalVar(userScriptDir=True)
         localModuleToMerge = os.path.join(scrpDir,newModuleName+'.01.ma')
+        archive = zipfile.ZipFile(sourcePath, 'r')
+        jsonFile = archive.open('data.ma')
         
-        outputFile = open(localModuleToMerge, "w") 
-        with open(sourcePath) as f:        
-            for line in f:
-                if prfxToReplace in line:
-                    nwLn = line.replace(prfxToReplace,newModuleName)
-                    outputFile.writelines( nwLn)
-                else:
-                    outputFile.writelines(line)
-                
+        outputFile =  open(localModuleToMerge, "w") 
+       
+        for line in jsonFile:
+            if prfxToReplace in line:
+                nwLn = line.replace(prfxToReplace,newModuleName)
+                outputFile.writelines( nwLn)
+            else:
+                outputFile.writelines(line)
+        archive.close()   
         outputFile.close()
         ## ------------------------------- inject it in your scene
         mc.file(localModuleToMerge,i=True)
-        OpenMaya.MGlobal.displayInfo( '** %s was successfully merge in your scene'% newModuleName )
         mc.sysFile(localModuleToMerge,delete=True)  
+        
+        #now list new imported module
+        content = mc.ls(type='transform')
+        attributeList = ['foodType','uuID']
+        nwNode = []
+        for obj in content:
+            idx = 0
+            for index, attr in enumerate(attributeList):
+                if mc.attributeQuery(attributeList[index],node=obj,ex=True) == True:
+                    idx += 1
+            if idx > 1:
+                nwNode.append(obj)
+        mc.setAttr(nwNode[0] +'.uuID',l=False)
+        mc.deleteAttr(nwNode[0] +'.uuID')
+        
+        foodTpe = mc.getAttr(nwNode[0] +'.foodType')
+        OpenMaya.MGlobal.displayInfo( '**The %s dish  %s was successfully merge in your scene'% (foodTpe, newModuleName) )
+        return nwNode[0]
     def clean_asset_file():
         pass
 class factory:
-    def expose_members(selfroot,
-                            root,
-                            assetListing ):
+    def expose_members(self ,
+                        root,
+                        assetListing ):
         if mc.objExists(root)==True:
             attributeList = [ 'element']
 
@@ -431,8 +524,9 @@ class factory:
                             foodType,
                             moduleInfos ):
         if mc.objExists(root)==True:
-            attributeList = ['foodType','moduleInfos']
-            dataList = [foodType,moduleInfos]
+            flagKey = str(uuid.uuid4().hex)
+            attributeList = ['foodType','moduleInfos','uuID']
+            dataList = [foodType,moduleInfos,flagKey]
             for index, attr in enumerate(attributeList):
                 if mc.attributeQuery(attributeList[index],node=root,ex=True) == False:
                     mc.addAttr(root,ln=attributeList[index],dt='string')
@@ -476,3 +570,16 @@ class factory:
         except:
             print 'ERROR writing', filename
             pass
+    def collect_similar_dish(self,expextedFood):
+        content = mc.ls(type='transform')
+        attributeList = ['foodType' ]
+        nwNode = []
+        for obj in content:
+            idx = 0
+            for index, attr in enumerate(attributeList):
+                if mc.attributeQuery(attributeList[index],node=obj,ex=True) == True:
+                    if mc.getAttr(obj+'.'+attributeList[index]) == expextedFood  :
+                        idx = 2
+            if idx > 1:
+                nwNode.append(obj)
+        return nwNode
