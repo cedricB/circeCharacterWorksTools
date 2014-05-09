@@ -1,3 +1,38 @@
+'''
+########################################################################
+#                                                                      #
+#             caramel.py                                        #
+#                                                                      #
+#             Email: cedricbazillou@gmail.com                          #
+#             blog: http://circecharacterworks.wordpress.com/          #
+########################################################################
+
+    L I C E N S E:
+        Copyright (c) 2014 Cedric BAZILLOU All rights reserved.
+        
+        Permission is hereby granted
+            -to modify the file
+            -distribute
+            -share
+            -do derivative work  
+
+        The above copyright notice and this permission notice shall be included in all copies of the Software 
+        and is subject to the following conditions:
+            - Te user uses the same type of license
+            - credit the original author
+            - does not claim patent nor copyright from the original work
+
+    P U R P O S E:
+        Trigger an array of pose space helper/blendshape
+
+    I N S T A L L A T I O N:
+        Copy the "caramel.py" to your Maya plugins directory
+        Windows: Program Files\Autodesk\MayaXXXX\bin\plug-ins\ 
+
+        or better in your maya user directory:
+        %MAYA_APP_DIR%\%mayaNumber%\scripts\plug-ins\( create one if it does not exists )
+'''
+
 import math, sys
 import maya.OpenMaya as OpenMaya
 import maya.OpenMayaMPx as OpenMayaMPx

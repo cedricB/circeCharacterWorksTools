@@ -12,7 +12,7 @@ import uuid
 * ..space is cheap
 * ..control outweighs performance
 
-
+copyAEWindow
 |Feature                          |Description  |
 |:--------------------------------|:------------|
 |Non-destructive                  | Every change you make is maintained in history; facilitating persistent undo/redo, traceable history of who did what and when, including incremental versioning with arbitrary metadata, like a changelog or description. All retrievable at any point in time. |
