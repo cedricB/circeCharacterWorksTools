@@ -7,6 +7,7 @@ from functools import partial
 import json
 import uuid
 
+
 '''
 * ..change is common
 * ..space is cheap
@@ -20,45 +21,51 @@ copyAEWindow
 |Partial I/O                      | As a side-effect to its inherently simplistic design, reading and writing within large sets of data doesn't require reading everything into memory nor does it affect surrounding data; facilitating distributed collaborative editing. See [RFC13][] for more information.
 |No limits on size nor complexity | Store millions of strings, booleans, matrices.. groups of matrices.. matrices of groups, strings, booleans and vectors. On consumer hardware, in a matter of megabytes, without compression. Then go ahead and store billions.
 |Open specification, open source  | There are no mysteries about the inner-workings of the data that you write; you may write personal tools for debugging, graphical interfaces or extensions to the standard. The specifications are all laid out below and collaboration is welcome. (Want Open Metadata in Lua, Java, PHP or C++?)
+reglisse
+brownie
 
+15 juin
 ### 
 
 '''
 author = 'cedric bazillou 2013'
-version = 0.041
+version = 0.043
+
 
 class dishBuilder:
     def __init__(self):
+        #sys.path.append(modulePath)
+        if 'dish.dishData' not in sys.modules.keys():
+            modulePath = os.path.dirname(inspect.getfile(self.resizeBuildTabs))
+            modulePath = os.path.dirname(modulePath)
+            sys.path.append(modulePath)
+        import dish.dishData as attrToFilter
+        reload(attrToFilter)
+
         self.scrollInfo  = ''
         self.assetListing  = ''
         self.bentoRoot = ''
         self.tabCtrl_A = ''
         self.tabCtrl_B = ''
+        self.driverFld =  ''
+        self.driverScroll = ''
+        self.DriverAttributes = ''
         self.canvasSize =[430,400]
         self.bundle_prgrss = ''
         self.bentoElements = 'CCW_TOOLS_bentoElem'
         self.foodField = ''
         self.IO =  IO()
         self.factory = factory()
-        self.defaultNodes = [u'time1', u'sequenceManager1', u'renderPartition',
-        u'renderGlobalsList1', u'defaultLightList1', u'defaultShaderList1',
-        u'postProcessList1', u'defaultRenderUtilityList1',
-        u'defaultRenderingList1', u'lightList1',
-        u'defaultTextureList1', u'lambert1', u'particleCloud1',
-        u'initialShadingGroup', u'initialParticleSE', u'initialMaterialInfo',
-        u'shaderGlow1', u'dof1', u'defaultRenderGlobals', 
-        u'defaultRenderQuality', u'defaultResolution', u'defaultLightSet',
-        u'defaultObjectSet', u'defaultViewColorManager', u'hardwareRenderGlobals',
-        u'hardwareRenderingGlobals', u'characterPartition', u'defaultHardwareRenderGlobals',
-        u'ikSystem', u'hyperGraphInfo', u'hyperGraphLayout', u'globalCacheControl', 
-        u'dynController1', u'strokeGlobals', u'CustomGPUCacheFilter', u'objectTypeFilter74',
-        u'persp', u'perspShape', u'top', u'topShape', u'front', u'frontShape', u'side', u'sideShape',
-        u'lightLinker1', u'layersFilter', u'objectTypeFilter75', u'animLayersFilter',
-        u'objectTypeFilter76', u'notAnimLayersFilter', u'objectTypeFilter77',
-        u'defaultRenderLayerFilter', u'objectNameFilter4', u'renderLayerFilter',
-        u'objectTypeFilter78', u'objectScriptFilter10', u'renderingSetsFilter',
-        u'objectTypeFilter79', u'relationshipPanel1LeftAttrFilter', u'relationshipPanel1RightAttrFilter',
-        u'layerManager', u'defaultLayer', u'renderLayerManager', u'defaultRenderLayer'] # 
+        self.defaultNodes = attrToFilter.defaultNodes        
+        excludeAttr = attrToFilter.excludeAttr
+        
+        filter =  attrToFilter.unExposeAttr
+        excludeAttr.extend(filter) 
+        excludeAttr.extend(attrToFilter.crveExclude)
+        excludeAttr.extend(attrToFilter.meshExclude)
+        excludeAttr.extend(attrToFilter.latExclude)
+        self.exludedAttributes = excludeAttr 
+
     #---------------------------------------------------------------------------------------- widget Helpers 
     def resizeBuildTabs(self):
         tabIndex = mc.tabLayout(self.tabCtrl_A ,q=True,sti=True )
@@ -116,18 +123,114 @@ class dishBuilder:
         mc.button(l='4-c. Inject Elements',h=36 ,c=self.validateDishData)
     def defineDriver_UI(self ):
         mc.frameLayout( collapsable=False,labelVisible=False, borderStyle='etchedIn',mw=5,mh=5 ,p=self.tabCtrl_B)
+        defineDriver_form = mc.formLayout(numberOfDivisions=2)
+
+        #---------------------------------------------------------------------------------------
+        rowA = self.editDriverTab( defineDriver_form ) 
+        rowB = self.manageDriverTab( defineDriver_form ) 
+
+        mc.formLayout(defineDriver_form,e=True,attachForm=[ 
+                            (rowA, 'top', 1),(rowA, 'bottom', 1),(rowA, 'left', 1),
+                            (rowB, 'top', 1),(rowB, 'bottom', 1),(rowB, 'right', 1) ],
+                            attachControl=[(rowB, 'left', 5, rowA)])
+    def collect_driver_data(self,*args):
+        sel = mc.ls(sl=True,fl=True)
+        root = mc.textField( self.driverFld ,q=True,tx=True)
+        mc.textField( self.driverFld ,e=True,tx='')
+        if sel is None or len(sel)<1  : 
+            return 
+        else:
+            bentoRoot = mc.textField( self.bentoRoot,q=True,tx=True)
+            erroChk = 0
+            chkList = [bentoRoot ]
+            feedBackList = ['Please pick a root object']
+            for index, checkObj in enumerate(chkList): 
+                if checkObj is None or len(checkObj)== 0:
+                    erroChk += 1
+                    mc.warning(feedBackList[index])
+            if erroChk > 0:
+                return 
+            mc.textField( self.driverFld ,e=True,tx=sel[0])
+
+            attributeList = list( set(mc.listAttr(sel[0] ))-set(self.exludedAttributes)) 
+            print attributeList
+            #
+            
+            mc.textScrollList( self.DriverAttributes ,e=True,ra=True)
+            if attributeList is not None:
+                attributeList = sorted(attributeList)
+                for attr in attributeList:
+                    mc.textScrollList( self.DriverAttributes ,e=True,a=attr)
+    def editDriverTab(self,anchor ):
+        driverRow = mc.frameLayout( collapsable=False,labelVisible=False,  borderStyle='etchedIn', 
+        mh=5,mw=5 ,w=self.canvasSize[0]/2-30,p=anchor )  
+        mc.text(l=' 5-a. Driver Node :')
+        mc.rowLayout( numberOfColumns=2,  adjustableColumn=1,cl2=('left','both' ) )
+        self.driverFld = mc.textField( 'CCW_TOOLS_DRVER_txFld' )
+        psdFileRootBtn = mc.button(l='<' ,w=20,h=20,c=self.collect_driver_data )        
+        mc.setParent('..')
+ 
+        self.DriverAttributes = mc.textScrollList( 'CCW_TOOLS_DriverAttributes',numberOfRows=8, allowMultiSelection=True)
+
+        mc.setParent( driverRow )
+        mc.separator()
+        mc.button(l='5-b. Expose selection' , h=32,c=self.validate_driverData)
         
-        anchorDock = mc.rowLayout(    numberOfColumns=2,
-                            columnWidth2=(self.canvasSize[0]/5*2, 95 ),
-                            adjustableColumn=2,
-                            columnAlign=(1, 'right'),
-                            columnAttach=[(1,'both',0), (2,'both',0)] ,w=self.canvasSize[0])
-        mc.frameLayout( collapsable=False,labelVisible=False, borderStyle='etchedOut',mw=5,mh=5  )
-        mc.button(l='Scan Elements' )
-        mc.textScrollList( 'CCW_TOOLS_bentoDriver',numberOfRows=10, allowMultiSelection=True)
-        mc.button(l='Remove Elements' ,w=40)
+
+        return driverRow
+    def defineOutput_UI(self ):
+        mc.frameLayout( collapsable=False,labelVisible=False, borderStyle='etchedIn',mw=5,mh=5 ,p=self.tabCtrl_B)
+        mc.button(l='Flag output' ,w=40)
+    def defineMisc_UI(self ):
+        mc.frameLayout( collapsable=False,labelVisible=False, borderStyle='etchedIn',mw=5,mh=5 ,p=self.tabCtrl_B)
+        mc.button(l='Flag output' ,w=40)
+    #---------------------------------------------------------------------------------------- editDriverTab UI Helpers
+    def validate_driverData(self,*args):
+        attr = mc.textScrollList( self.DriverAttributes ,q=True,si=True)
+        root = mc.textField( self.driverFld ,q=True,tx=True)
         
-        mc.text(l='driver element in this list',p=anchorDock)
+        bentoRoot = mc.textField( self.bentoRoot,q=True,tx=True)
+        erroChk = 0
+        chkList = [bentoRoot ]
+        feedBackList = ['Please pick a root object']
+        for index, checkObj in enumerate(chkList): 
+            if checkObj is None or len(checkObj)== 0:
+                erroChk += 1
+                mc.warning(feedBackList[index])
+        if erroChk > 0:
+            return 
+        if attr is not None and len(root)>0:
+            self.factory.publish_IO_Connections( bentoRoot,root+'.'+attr[0],0 ) 
+            self.reset_driverUI()
+            self.fill_driverUI( bentoRoot )
+    def manageDriverTab(self,anchor  ):
+        driverRow = mc.frameLayout( collapsable=False,labelVisible=False,  borderStyle='in',  mh=3,mw=5  ,p=anchor )
+        mc.text(l='Published Drivers' )
+        self.driverScroll = mc.scrollLayout(	horizontalScrollBarThickness=0,verticalScrollBarThickness=8,childResizable=True )
+        
+        return driverRow
+    def expose_driver_unit(self, anchor, driverLabel,index,root ):
+        mc.frameLayout( collapsable=False,labelVisible=True,  borderStyle='out' ,l='driver%s'%index ,mw=2,mh=2 ,p=anchor )
+        mc.textField(tx=driverLabel,ed=False )
+        rmBtn = mc.button(l='remove',c=partial(self.validate_driver_deletion,root , index))
+    def reset_driverUI(self):
+        childArray = mc.scrollLayout( self.driverScroll ,q=True,childArray=True) 
+        if childArray is not None:
+            for obj in childArray:
+                mc.deleteUI(obj)
+    def fill_driverUI(self,root ):
+        inputData = self.factory.retrieve_IO_Connections(root, 0)
+        if inputData is not None: 
+            lenData = len(inputData.keys())
+            keyList = sorted(inputData.keys())
+
+            for k in range(lenData):
+                writeData = inputData[keyList[k]]
+                self.expose_driver_unit(self.driverScroll,writeData,keyList[k],root)
+    def validate_driver_deletion(self ,root , index, *args):
+        self.factory.delete_Connections_at_targetIndex( root , index,0 )
+        self.reset_driverUI()
+        self.fill_driverUI( root)
     #---------------------------------------------------------------------------------------- cookTab UI Helpers
     def validateDishBeforePublish(self,*args):
         root = mc.textField( self.bentoRoot,q=True,tx=True)
@@ -186,9 +289,36 @@ class dishBuilder:
     def collect_root(self,fieldRef,*args):
         sel = mc.ls(sl=True,fl=True)
         mc.textField(fieldRef,e=True,tx='')
-        if sel is None or len(sel)<1  :                
+        mc.textField( self.foodField,e=True,tx='')  
+        mc.scrollField(self.scrollInfo ,e=True,tx='') 
+
+        mc.textScrollList( self.DriverAttributes ,e=True,ra=True) 
+        mc.textField( self.driverFld,e=True,tx='')        
+        mc.textScrollList(  self.assetListing,e=True,ra=True) 
+        self.reset_driverUI()
+
+        if sel is None or len(sel)<1  :      
             return 
         else:
+            inputData = self.factory.retrieve_IO_Connections(sel[0], 0)
+            self.fill_driverUI(sel[0])
+            
+            UI_Dict = {}
+            UI_Dict['moduleInfos']  = [ self.scrollInfo, 1]
+            UI_Dict['foodType']     = [ self.foodField, 0]
+            UI_Dict['element']     = [ self.assetListing, 2]
+            
+            dataList = self.factory.read_dish_data(sel[0])
+
+            for key in dataList.keys():
+                if  dataList[key] is not '':
+                    if UI_Dict[key][1] == 0:
+                        mc.textField( UI_Dict[key][0],e=True,tx=dataList[key])
+                    if UI_Dict[key][1] == 1:
+                        mc.scrollField( UI_Dict[key][0] ,e=True,tx=dataList[key])
+                    if UI_Dict[key][1] == 2:
+                        for elem in dataList[key]:
+                            mc.textScrollList( UI_Dict[key][0] ,e=True,a=elem)
             mc.textField(fieldRef,e=True,tx=sel[0])
     def scanSceneGraph(self ,*args):
         sceneGraph = mc.ls()
@@ -213,6 +343,8 @@ class dishBuilder:
         self.tabCtrl_B = mc.tabLayout( innerMarginWidth=5, innerMarginHeight=5 )        
         self.injectElement_UI() 
         self.defineDriver_UI()
+        self.defineOutput_UI()
+        self.defineMisc_UI()
 
         # publish Elements
         mc.setParent(buildDish_UI_Anchor)
@@ -221,6 +353,8 @@ class dishBuilder:
         
         mc.tabLayout(self.tabCtrl_B ,e=True,tabLabelIndex=[1,'4. Flag Elements'])
         mc.tabLayout(self.tabCtrl_B ,e=True,tabLabelIndex=[2,'5. Expose Drivers'])
+        mc.tabLayout(self.tabCtrl_B ,e=True,tabLabelIndex=[3,'6. Expose Outputs'])
+        mc.tabLayout(self.tabCtrl_B ,e=True,tabLabelIndex=[4,'7. Misc.'])
     #---------------------------------------------------------------------------------------- deliverTab UI Helpers
     
     #---------------------------------------------------------------------------------------- deliver TAB
@@ -583,3 +717,76 @@ class factory:
             if idx > 1:
                 nwNode.append(obj)
         return nwNode
+    def read_dish_data(self , root):
+        attributeList = ['foodType','moduleInfos' ]
+        dataList = {}
+        for  attr in  attributeList :
+            dataList[attr] = ''
+            if mc.attributeQuery(attr,node=root,ex=True) == True:
+                dataList[attr] = mc.getAttr('%s.%s'%(root,attr))
+        
+        dataList['element'] = ''
+        if mc.attributeQuery('element',node=root,ex=True) == True:
+            cntList = mc.listConnections('%s.%s'%(root,'element'),sh=True)
+            if cntList is not None and len(cntList)>0:
+                dataList['element'] = []
+                dataList['element'].extend(cntList)
+        return dataList
+    def retrieve_IO_Connections(self,root, IO_Index ):
+        attributeList = ['foodType','moduleInfos','uuID']
+        chkErrr = 0
+        for index, attr in enumerate(attributeList):
+            if mc.attributeQuery(attributeList[index],node=root,ex=True) == False:
+                chkErrr += 1
+
+        if chkErrr > 0:
+            return None
+        attributeList = ['inputStorage', 'outputStorage']
+        cnList = ['input', 'output']    
+        for  attr in  attributeList :
+            if mc.attributeQuery(attr,node=root,ex=True) == False:
+                storage = mc.createNode('choice',n=''.join((root,'_',attr,'1')))
+                mc.addAttr(root,ln=attr,k=False,h=True)
+                mc.connectAttr(storage+'.nodeState' ,root+'.'+attr ,f=True)
+                
+        dataList = {} 
+        storage = mc.listConnections(root+'.'+attributeList[IO_Index])[0]
+        idxList = mc.getAttr(storage+'.'+cnList[IO_Index],mi=True)
+        if idxList is None:
+            return None
+            
+        for index, value in enumerate(idxList):
+            driverAttr = mc.connectionInfo(storage+'.'+cnList[IO_Index]+'[%s]'%value,sfd=True)
+            dataList[index] = driverAttr
+        
+        
+        return dataList
+    def publish_IO_Connections(self,root,targetAttribute,IO_Index ):
+        if mc.objExists(targetAttribute) == False :
+            return
+
+        attributeList = ['inputStorage', 'outputStorage']   
+        cnList = ['input', 'output']          
+        storage = mc.listConnections(root+'.'+attributeList[IO_Index])[0]  
+   
+        idxList = mc.getAttr(storage+'.'+cnList[IO_Index],mi=True)
+        idx = 0
+        if idxList is None:
+            idxList = [0]
+            mc.connectAttr( targetAttribute, storage + '.input[%s]'%0,f=True)
+        else:
+            idx = idxList[-1]+1
+            mc.connectAttr( targetAttribute, storage + '.input[%s]'%idx,f=True)
+    def delete_Connections_at_targetIndex(self,root,targetIndex,IO_Index ):
+        attributeList = ['inputStorage', 'outputStorage']   
+        cnList = ['input', 'output']          
+        storage = mc.listConnections(root+'.'+attributeList[IO_Index])[0]  
+   
+        idxList = mc.getAttr(storage+'.'+cnList[IO_Index],mi=True)
+        idx = 0
+        if idxList is None:
+            return
+        else:
+            targetIndex = idxList[targetIndex]
+            if targetIndex in idxList :
+                mc.removeMultiInstance(storage+'.'+cnList[IO_Index]+'[%s]'%targetIndex,b=True)

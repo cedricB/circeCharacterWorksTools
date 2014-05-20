@@ -1,7 +1,7 @@
 '''
 ########################################################################
 #                                                                      #
-#             caramel.py                                        #
+#             caramel.py                                               #
 #                                                                      #
 #             Email: cedricbazillou@gmail.com                          #
 #             blog: http://circecharacterworks.wordpress.com/          #
@@ -39,7 +39,7 @@ import maya.OpenMayaMPx as OpenMayaMPx
 
 kPluginNodeName = "caramel"
 kPluginNodeId = OpenMaya.MTypeId(0xF1C473) 
-kPluginVersion = "1.285"
+kPluginVersion = "1.286"
 kPluginAuthor = "Bazillou2012"
 
 
@@ -98,8 +98,8 @@ class caramel(OpenMayaMPx.MPxNode):
                 output_handle               = Data.outputValue(self.output)
                 size_Value                  = Data.inputValue(self.size).asDouble()
                 width_Value                 = Data.inputValue(self.width).asDouble()
-                curveDegree_Value           = Data.inputValue(self.curveDegree).asInt()
-                outputCurveDegree_Value     = curveDegree_Value
+                outputCurveDegree_Value     = Data.inputValue(self.curveDegree).asInt()
+                orientHandle_Value          = Data.inputValue(self.orientHandle).asBool()
 
                 knotMatrixList = self.compute_knotData(input_Hdle,size_Value )                
 
@@ -134,13 +134,10 @@ class caramel(OpenMayaMPx.MPxNode):
                 for k in range(pointListA.length()):
                     controlVertices.append(pointListA[k])
 
-                outDegree = curveDegree_Value
                 if Plug == self.output :
                     for k in range(knotList.length()):
                         vKnotSequences.append(knotList[k])
-    
-    
-                    outFn.create ( controlVertices, uKnotSequences,vKnotSequences,     1, outDegree,
+                    outFn.create ( controlVertices, uKnotSequences,vKnotSequences,     1, outputCurveDegree_Value,
                     OpenMaya.MFnNurbsSurface.kOpen , OpenMaya.MFnNurbsSurface.kOpen ,True,    newOutputObj)
                     
                     
@@ -159,7 +156,7 @@ class caramel(OpenMayaMPx.MPxNode):
                         cv_pointList.set(pointListA[k] + (pointListB[k] - pointListA[k])*0.5, k)
 
 
-                    outputCurveFn.create( cv_pointList , knotList, outDegree,OpenMaya.MFnNurbsCurve.kOpen, False, False,  crbOBJ )
+                    outputCurveFn.create( cv_pointList , knotList, outputCurveDegree_Value,OpenMaya.MFnNurbsCurve.kOpen, False, False,  crbOBJ )
                     output_Handle.setMObject(crbOBJ)
                     output_Handle.setClean()  
                 #------------------------------------------------------------------------------------------------------
@@ -179,7 +176,7 @@ class caramel(OpenMayaMPx.MPxNode):
                         neutralQuat = OpenMaya.MQuaternion()
                         
                         
-                        aimMat = aimQuaternion.asMatrix()                      
+                        aimMat = aimQuaternion.asMatrix()    *  knotMatrixList[0]                  
 
                     output_Handle = Data.outputValue(self.profil)
                     
@@ -207,7 +204,14 @@ def nodeInitializer():
     
     #---------------------------------------------------------------------------- Input Attributes
 
-
+    caramel.orientHandle = nAttr.create( "orientHandle", "hDle", OpenMaya.MFnNumericData.kBoolean,0)
+    nAttr.setWritable(1)
+    nAttr.setStorable(1)
+    nAttr.setReadable(1)
+    nAttr.setKeyable(1)
+    nAttr.setHidden(0)
+    caramel.addAttribute(caramel.orientHandle)
+    
     caramel.input = matAttr.create("input", "in",OpenMaya.MFnMatrixAttribute.kDouble)
     matAttr.setArray(1)
     matAttr.setStorable(0)
@@ -256,7 +260,7 @@ def nodeInitializer():
     caramel.attributeAffects( caramel.width               , caramel.output )
     caramel.attributeAffects( caramel.size                , caramel.output )
     caramel.attributeAffects( caramel.curveDegree        , caramel.output )
-
+    caramel.attributeAffects( caramel.orientHandle        , caramel.output )
     #---------------------------------------------------------------------------- Output Attributes
     caramel.outputCurve = typed_Attr.create( "outputCurve", "outCrv", OpenMaya.MFnData.kNurbsCurve)
     typed_Attr.setStorable(0)
@@ -268,6 +272,7 @@ def nodeInitializer():
     caramel.attributeAffects( caramel.width               , caramel.outputCurve )
     caramel.attributeAffects( caramel.size                , caramel.outputCurve )
     caramel.attributeAffects( caramel.curveDegree        , caramel.outputCurve )
+    caramel.attributeAffects( caramel.orientHandle        , caramel.outputCurve )
 
     caramel.profil = typed_Attr.create( "profil", "prf", OpenMaya.MFnNurbsCurveData.kNurbsCurve )
     typed_Attr.setStorable(0)
@@ -279,6 +284,9 @@ def nodeInitializer():
     caramel.attributeAffects( caramel.width               , caramel.profil )
     caramel.attributeAffects( caramel.size                , caramel.profil )
     caramel.attributeAffects( caramel.curveDegree        , caramel.profil )
+    caramel.attributeAffects( caramel.orientHandle        , caramel.profil )
+    
+    
 def initializePlugin(mobject):
     mplugin = OpenMayaMPx.MFnPlugin(mobject, kPluginAuthor , kPluginVersion  , "Any")
     try:
