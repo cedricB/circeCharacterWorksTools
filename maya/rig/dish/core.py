@@ -42,6 +42,9 @@ class dishBuilder:
         import dish.dishData as attrToFilter
         reload(attrToFilter)
 
+        self.outputScroll = ''
+        self.outputAttributes =  ''
+        self.outputFld  =  ''
         self.scrollInfo  = ''
         self.assetListing  = ''
         self.bentoRoot = ''
@@ -175,12 +178,42 @@ class dishBuilder:
         mc.setParent( driverRow )
         mc.separator()
         mc.button(l='5-b. Expose selection' , h=32,c=self.validate_driverData)
-        
 
         return driverRow
-    def defineOutput_UI(self ):
+    def defineOutput_UI(self  ):
         mc.frameLayout( collapsable=False,labelVisible=False, borderStyle='etchedIn',mw=5,mh=5 ,p=self.tabCtrl_B)
-        mc.button(l='Flag output' ,w=40)
+        defineDriver_form = mc.formLayout(numberOfDivisions=2)
+
+        #---------------------------------------------------------------------------------------
+        rowA = self.editOutput_UI( defineDriver_form ) 
+        rowB = self.manageOutputTab( defineDriver_form ) 
+
+        mc.formLayout(defineDriver_form,e=True,attachForm=[ 
+                            (rowA, 'top', 1),(rowA, 'bottom', 1),(rowA, 'left', 1),
+                            (rowB, 'top', 1),(rowB, 'bottom', 1),(rowB, 'right', 1) ],
+                            attachControl=[(rowB, 'left', 5, rowA)])
+    def editOutput_UI(self,anchor ):
+        driverRow = mc.frameLayout( collapsable=False,labelVisible=False,  borderStyle='etchedIn', 
+        mh=5,mw=5 ,w=self.canvasSize[0]/2-30,p=anchor )  
+        mc.text(l=' 6-a. Output Node :')
+        mc.rowLayout( numberOfColumns=2,  adjustableColumn=1,cl2=('left','both' ) )
+        self.outputFld = mc.textField( 'CCW_TOOLS_output_txFld' )
+        psdFileRootBtn = mc.button(l='<' ,w=20,h=20  )        
+        mc.setParent('..')
+ 
+        self.outputAttributes = mc.textScrollList( 'CCW_TOOLS_outputAttributes',numberOfRows=8, allowMultiSelection=True)
+
+        mc.setParent( driverRow )
+        mc.separator()
+        mc.button(l='6-b. Expose selection' , h=32 )
+
+        return driverRow
+    def manageOutputTab(self,anchor  ):
+        driverRow = mc.frameLayout( collapsable=False,labelVisible=False,  borderStyle='in',  mh=3,mw=5  ,p=anchor )
+        mc.text(l='Published Output' )
+        self.outputScroll = mc.scrollLayout(	horizontalScrollBarThickness=0,verticalScrollBarThickness=8,childResizable=True )
+        
+        return driverRow
     def defineMisc_UI(self ):
         mc.frameLayout( collapsable=False,labelVisible=False, borderStyle='etchedIn',mw=5,mh=5 ,p=self.tabCtrl_B)
         mc.button(l='Flag output' ,w=40)
@@ -733,6 +766,10 @@ class factory:
                 dataList['element'].extend(cntList)
         return dataList
     def retrieve_IO_Connections(self,root, IO_Index ):
+        plugList = ['recipe.py']
+        for plugin in plugList:
+            if not mc.pluginInfo(plugin,q=True,l=True):
+                mc.loadPlugin(plugin)
         attributeList = ['foodType','moduleInfos','uuID']
         chkErrr = 0
         for index, attr in enumerate(attributeList):
@@ -741,16 +778,24 @@ class factory:
 
         if chkErrr > 0:
             return None
-        attributeList = ['inputStorage', 'outputStorage']
+
+        attributeList = ['recipe']
         cnList = ['input', 'output']    
         for  attr in  attributeList :
             if mc.attributeQuery(attr,node=root,ex=True) == False:
-                storage = mc.createNode('choice',n=''.join((root,'_',attr,'1')))
+                storage = mc.createNode('recipe',n=''.join((root,'_',attr,'1')))
                 mc.addAttr(root,ln=attr,k=False,h=True)
                 mc.connectAttr(storage+'.nodeState' ,root+'.'+attr ,f=True)
                 
         dataList = {} 
-        storage = mc.listConnections(root+'.'+attributeList[IO_Index])[0]
+        storage = mc.listConnections(root+'.'+attributeList[0])
+        if storage is None:
+            attributeList = ['recipe']
+            storage = mc.createNode('recipe',n=''.join((root,'_',attributeList[0],'1')))
+            mc.connectAttr(storage+'.nodeState' ,root+'.'+attributeList[0] ,f=True)
+        else:
+            storage = storage[0]  
+
         idxList = mc.getAttr(storage+'.'+cnList[IO_Index],mi=True)
         if idxList is None:
             return None
@@ -765,10 +810,16 @@ class factory:
         if mc.objExists(targetAttribute) == False :
             return
 
-        attributeList = ['inputStorage', 'outputStorage']   
+        attributeList = ['recipe']
         cnList = ['input', 'output']          
-        storage = mc.listConnections(root+'.'+attributeList[IO_Index])[0]  
-   
+        storage = mc.listConnections(root+'.'+attributeList[0])   
+        if storage is None:
+            attributeList = ['recipe']
+            storage = mc.createNode('recipe',n=''.join((root,'_',attributeList[0],'1')))
+            mc.connectAttr(storage+'.nodeState' ,root+'.'+attributeList[0] ,f=True)
+        else:
+            storage = storage[0]  
+
         idxList = mc.getAttr(storage+'.'+cnList[IO_Index],mi=True)
         idx = 0
         if idxList is None:
@@ -778,9 +829,16 @@ class factory:
             idx = idxList[-1]+1
             mc.connectAttr( targetAttribute, storage + '.input[%s]'%idx,f=True)
     def delete_Connections_at_targetIndex(self,root,targetIndex,IO_Index ):
-        attributeList = ['inputStorage', 'outputStorage']   
+        attributeList = ['recipe']
         cnList = ['input', 'output']          
-        storage = mc.listConnections(root+'.'+attributeList[IO_Index])[0]  
+        storage = mc.listConnections(root+'.'+attributeList[0])
+        if storage is None:
+            attributeList = ['recipe']
+            storage = mc.createNode('recipe',n=''.join((root,'_',attributeList[0],'1')))
+            mc.connectAttr(storage+'.nodeState' ,root+'.'+attributeList[0] ,f=True)
+        else:
+            storage = storage[0]  
+            
    
         idxList = mc.getAttr(storage+'.'+cnList[IO_Index],mi=True)
         idx = 0

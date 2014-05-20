@@ -65,13 +65,25 @@ def nodeInitializer():
     gAttr.addDataAccept ( OpenMaya.MFnData.kLattice   )
     gAttr.addDataAccept ( OpenMaya.MFnData.kNurbsCurve    )
     gAttr.addDataAccept ( OpenMaya.MFnData.kNurbsSurface     )
-    
+    gAttr.setArray(1)
     recipe.addAttribute(recipe.input)
 
     recipe.output = gAttr.create( "output", "out" )
     gAttr.setStorable(0)
     gAttr.setHidden(1)
-    gAttr.addDataAccept	( OpenMaya.MFnData.kAny )
+    gAttr.addDataAccept ( OpenMaya.MFnData.kAny )
+    gAttr.addDataAccept ( OpenMaya.MFnData.kString )
+    gAttr.addDataAccept ( OpenMaya.MFnData.kMatrix  )
+    gAttr.addDataAccept ( OpenMaya.MFnData.kStringArray  )
+    gAttr.addDataAccept ( OpenMaya.MFnData.kDoubleArray  )
+    gAttr.addDataAccept ( OpenMaya.MFnData.kIntArray  )
+    gAttr.addDataAccept ( OpenMaya.MFnData.kPointArray )
+    gAttr.addDataAccept ( OpenMaya.MFnData.kVectorArray  )
+    gAttr.addDataAccept ( OpenMaya.MFnData.kMesh  )
+    gAttr.addDataAccept ( OpenMaya.MFnData.kLattice   )
+    gAttr.addDataAccept ( OpenMaya.MFnData.kNurbsCurve    )
+    gAttr.addDataAccept ( OpenMaya.MFnData.kNurbsSurface     )
+    gAttr.setArray(1)
     recipe.addAttribute(recipe.output)
 
 
