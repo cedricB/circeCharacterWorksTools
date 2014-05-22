@@ -9,7 +9,7 @@
     L I C E N S E:
         Copyright (c) 2013 Cedric BAZILLOU All rights reserved.
         
-        Permission is hereby granted to Normanstudios/ mikros / onyx films companies to
+        Permission is hereby granted
             -to modify the file
             -distribute
             -share

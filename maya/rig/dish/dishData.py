@@ -15,6 +15,19 @@ articulations   = ['shoulder','elbow','wrist','finger','thigh','knee','ankle']
 groupType       = ['SYS','GRP','ZERO','OFFSET','HOOK','ANCHOR','Pivot','CTRLS','Space','Input','Output','Drivers']
 clothParts      = [ 'sleeve','stitch','skirt','coat','shirt','pants','collar','dress']
 
+recipeData = {'author':'cedricbazillou@gmail.com','gitSource':'https://github.com/cedricB/circeCharacterWorksTools'}
+
+surfceExclude =[u'curvePrecision', u'uDivisionsFactor', u'minValueU', u'minValueV',
+ u'useChordHeightRatio', u'degreeV', u'degreeU', u'simplifyV', u'objSpaceChordHeight', u'formU',
+ u'simplifyU', u'displayRenderTessellation', u'dispSF', u'vDivisionsFactor', u'chordHeight',
+ u'degreeUV', u'tweakSizeU', u'chordHeightRatio', u'spansV', u'create', u'minMaxRangeV',
+ u'minMaxRangeU', u'numberV', u'numberU', u'trimFace', u'patchUVIds', u'curvatureTolerance',
+ u'selCVDisp', u'modeV', u'modeU', u'tweakSizeV', u'dispOrigin', u'smoothEdgeRatio',
+ u'useChordHeight', u'normalsDisplayScale', u'edgeSwap', u'maxValueV', u'maxValueU',
+ u'spansUV', u'renderTriangleCount', u'explicitTessellationAttributes', u'simplifyMode',
+ u'curvePrecisionShaded', u'divisionsV', u'divisionsU', u'smoothEdge', u'basicTessellationType',
+ u'fixTextureWarp', u'gridDivisionPerSpanV', u'gridDivisionPerSpanU', u'spansU', u'formV']
+
 crveExclude = [u'degree', u'visibility',
  u'intermediateObject',
  u'spans', u'dispEP',

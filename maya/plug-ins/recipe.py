@@ -1,7 +1,7 @@
 '''
 ########################################################################
 #                                                                      #
-#             recipe.py                                              #
+#             recipe.py                                                #
 #                                                                      #
 #             Email: cedricbazillou@gmail.com                          #
 #             blog: http://circecharacterworks.wordpress.com/          #
@@ -25,7 +25,7 @@
         %MAYA_APP_DIR%\%mayaNumber%\scripts\plug-ins\( create one if it does not exists )
 '''
 
-__plug_in__Version = "0.1"
+__plug_in__Version = "0.13"
 __author = "Bazillou2013"
 
 import math 
@@ -47,10 +47,47 @@ class recipe(OpenMayaMPx.MPxNode):
 def nodeCreator():
     return OpenMayaMPx.asMPxPtr(recipe())
 def nodeInitializer():
-    typed_Attr  = OpenMaya.MFnTypedAttribute()
     gAttr       = OpenMaya.MFnGenericAttribute()
+    cAttr       = OpenMaya.MFnCompoundAttribute()
+    typed_Attr  = OpenMaya.MFnTypedAttribute()
+    nAttr = OpenMaya.MFnNumericAttribute()
+    
+    recipe.inputGrp = nAttr.create( "inputGrp", "inGr", OpenMaya.MFnNumericData.kDouble  )
+    nAttr.setStorable(0)
+    nAttr.setHidden(0)
+    recipe.addAttribute(recipe.inputGrp)
 
-    recipe.input = gAttr.create( "input", "in" )
+    recipe.outputGrp = nAttr.create( "outputGrp", "outGr", OpenMaya.MFnNumericData.kDouble  )
+    nAttr.setStorable(0)
+    nAttr.setHidden(0)
+    recipe.addAttribute(recipe.outputGrp)
+    
+    recipe.version = typed_Attr.create( "version", "vrs",  OpenMaya.MFnData.kString ) 
+    typed_Attr.setStorable(1)
+    typed_Attr.setHidden(0)
+    recipe.addAttribute(recipe.version)
+
+    recipe.foodType = typed_Attr.create( "foodType", "fdtp",  OpenMaya.MFnData.kString ) 
+    typed_Attr.setStorable(1)
+    typed_Attr.setHidden(0)
+    recipe.addAttribute(recipe.foodType)
+    
+    recipe.author = typed_Attr.create( "author", "aut",  OpenMaya.MFnData.kString ) 
+    typed_Attr.setStorable(1)
+    typed_Attr.setHidden(0)
+    recipe.addAttribute(recipe.author)
+    
+    recipe.gitSource = typed_Attr.create( "gitSource", "gtS",  OpenMaya.MFnData.kString ) 
+    typed_Attr.setStorable(1)
+    typed_Attr.setHidden(0)
+    recipe.addAttribute(recipe.gitSource)
+    
+    recipe.releaseDate = typed_Attr.create( "releaseDate", "rls",  OpenMaya.MFnData.kString ) 
+    typed_Attr.setStorable(1)
+    typed_Attr.setHidden(0)
+    recipe.addAttribute(recipe.releaseDate)
+
+    recipe.inlink = gAttr.create( "inlink", "ilk" )
     gAttr.setStorable(0)
     gAttr.setHidden(1)
     gAttr.addDataAccept ( OpenMaya.MFnData.kAny )
@@ -65,12 +102,28 @@ def nodeInitializer():
     gAttr.addDataAccept ( OpenMaya.MFnData.kLattice   )
     gAttr.addDataAccept ( OpenMaya.MFnData.kNurbsCurve    )
     gAttr.addDataAccept ( OpenMaya.MFnData.kNurbsSurface     )
-    gAttr.setArray(1)
+
+    recipe.inLabel = typed_Attr.create( "inLabel", "ilb",  OpenMaya.MFnData.kString ) 
+    typed_Attr.setStorable(1)
+    
+    recipe.inWidgetID = typed_Attr.create( "inWidgetID", "iwID",  OpenMaya.MFnData.kString ) 
+    typed_Attr.setStorable(1)
+
+    recipe.input_useParentHub = nAttr.create( "input_useParentHub", "inHB", OpenMaya.MFnNumericData.kBoolean,False  )
+    nAttr.setStorable(1)
+    nAttr.setHidden(1)
+
+    recipe.input = cAttr.create( "input", "in" )
+    cAttr.addChild(recipe.inlink)
+    cAttr.addChild(recipe.inLabel)
+    cAttr.addChild(recipe.inWidgetID)
+    cAttr.addChild(recipe.input_useParentHub)
+
+    cAttr.setArray(1)
     recipe.addAttribute(recipe.input)
 
-    recipe.output = gAttr.create( "output", "out" )
+    recipe.outLink = gAttr.create( "outLink", "oLk" )
     gAttr.setStorable(0)
-    gAttr.setHidden(1)
     gAttr.addDataAccept ( OpenMaya.MFnData.kAny )
     gAttr.addDataAccept ( OpenMaya.MFnData.kString )
     gAttr.addDataAccept ( OpenMaya.MFnData.kMatrix  )
@@ -83,7 +136,23 @@ def nodeInitializer():
     gAttr.addDataAccept ( OpenMaya.MFnData.kLattice   )
     gAttr.addDataAccept ( OpenMaya.MFnData.kNurbsCurve    )
     gAttr.addDataAccept ( OpenMaya.MFnData.kNurbsSurface     )
-    gAttr.setArray(1)
+    
+    recipe.outLabel = typed_Attr.create( "outLabel", "olb",  OpenMaya.MFnData.kString ) 
+    typed_Attr.setStorable(1)
+
+    recipe.outWidgetID = typed_Attr.create( "outWidgetID", "owID",  OpenMaya.MFnData.kString ) 
+    typed_Attr.setStorable(1)
+    
+    recipe.output_useParentHub = nAttr.create( "output_useParentHub", "outHB", OpenMaya.MFnNumericData.kBoolean,False  )
+    nAttr.setStorable(1)
+    nAttr.setHidden(1)
+
+    recipe.output = cAttr.create( "output", "out" )
+    cAttr.addChild(recipe.outLink)
+    cAttr.addChild(recipe.outLabel)
+    cAttr.addChild(recipe.outWidgetID)
+    cAttr.addChild(recipe.output_useParentHub)
+    cAttr.setArray(1)
     recipe.addAttribute(recipe.output)
 
 
