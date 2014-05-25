@@ -17,26 +17,8 @@ if 'dish.data' not in sys.modules.keys():
 
     import dish.dishData as attrToFilter
     reload(attrToFilter)
- 
-'''
-import dish.dishManager as dishManager
-reload(dishManager)
-'''
-
-'''
-* ..Current Features
 
 
-copyAEWindow
-|Feature                          |Description  |
-|:--------------------------------|:------------|
-|Non-destructive                  | Every change you make is maintained in history; facilitating persistent undo/redo, traceable history of who did what and when, including incremental versioning with arbitrary metadata, like a changelog or description. All retrievable at any point in time. |
-|Full disclosure                  | You may at any point in time browse to data at any hierarchical level using your native file-browser; read, write, modify, delete or debug malicious data with tools you know.    |
-|Partial I/O                      | As a side-effect to its inherently simplistic design, reading and writing within large sets of data doesn't require reading everything into memory nor does it affect surrounding data; facilitating distributed collaborative editing. See [RFC13][] for more information.
-|No limits on size nor complexity | Store millions of strings, booleans, matrices.. groups of matrices.. matrices of groups, strings, booleans and vectors. On consumer hardware, in a matter of megabytes, without compression. Then go ahead and store billions.
-|Open specification, open source  | There are no mysteries about the inner-workings of the data that you write; you may write personal tools for debugging, graphical interfaces or extensions to the standard. The specifications are all laid out below and collaboration is welcome. (Want Open Metadata in Lua, Java, PHP or C++?)
-
-'''
 author = 'cedric bazillou 2013'
 version = 0.045
 
@@ -62,7 +44,6 @@ class IO:
                 self.createBundle(tmpleDir,zipPath,tmpleRoot)
                 mc.progressBar('CCW_TOOLS_bundle_prgrss', edit=True, step=1)
             mc.progressBar('CCW_TOOLS_bundle_prgrss', edit=True, endProgress=True)
-
     def createBundle(self,sourcePath,outputZip,root):
         myzip = zipfile.ZipFile(outputZip, 'w') 
         myzip.write( os.path.join( sourcePath ,'dish.ini') ,  r'\dish.ini'  )

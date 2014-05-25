@@ -3,6 +3,7 @@ circeCharacterWorksTools
 
 A set of tool for maya designed to handle character deformation effectively
 
+* ..Current Features
 |Feature                          |Description  |
 |:--------------------------------|:------------|
 |Template based                   | All aspect of deformation organized into a logical unit  : a dish . |

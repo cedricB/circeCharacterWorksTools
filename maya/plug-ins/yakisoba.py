@@ -55,18 +55,18 @@ class yakisoba(OpenMayaMPx.MPxNode):
         if actionData.isNull() == False :
             inputNurbsConnected = True
         return inputNurbsConnected
-    def update_output_storage(self,uParameter_Hdle,output_handle):
-        curveParameterCount = uParameter_Hdle.elementCount()
+    def update_output_storage(self,uValue_Hdle,output_handle):
+        curveParameterCount = uValue_Hdle.elementCount()
         curveParameterList = []
         idxList = []
         #extract parameter value 
         for k in range(curveParameterCount):
-            curveParameterList.append(uParameter_Hdle.inputValue().asDouble())
+            curveParameterList.append(uValue_Hdle.inputValue().asDouble())
             
-            idx = uParameter_Hdle.elementIndex()
+            idx = uValue_Hdle.elementIndex()
             idxList.append(idx)
             if k != curveParameterCount-1:
-                uParameter_Hdle.next()
+                uValue_Hdle.next()
                 
         #how many entry do we need add to the current output list?
         cBuilder = output_handle.builder()
@@ -95,7 +95,7 @@ class yakisoba(OpenMayaMPx.MPxNode):
             inputRibbonObj          = Data.inputValue( self.inputRibbon ).asNurbsSurfaceTransformed()
             output_handle           = Data.outputArrayValue(self.output)
             
-            uParameter_Hdle         = Data.inputArrayValue(self.uParameter)
+            uValue_Hdle             = Data.inputArrayValue(self.uValue)
             twist_Value             = Data.inputValue(self.twist).asDouble()
             disableRotation_val     = Data.inputValue(self.disableRotation).asBool()
 
@@ -103,7 +103,7 @@ class yakisoba(OpenMayaMPx.MPxNode):
 
             InputNurbsConnected = self.check_curve_surface_plugs([inputCurveObj])
             InputRibbonConnected = self.check_curve_surface_plugs([inputRibbonObj])
-            if InputNurbsConnected == True and InputRibbonConnected  == True and uParameter_Hdle.elementCount() > 0 :
+            if InputNurbsConnected == True and InputRibbonConnected  == True and uValue_Hdle.elementCount() > 0 :
                 nrbMFn = OpenMaya.MFnNurbsCurve( inputCurveObj )
                 curveLen = nrbMFn.length(0.0001)
                 surfMFn = OpenMaya.MFnNurbsSurface( inputRibbonObj )
@@ -126,7 +126,7 @@ class yakisoba(OpenMayaMPx.MPxNode):
                 
                 cvRange =  endVal - strVal
                 
-                paramData = self.update_output_storage( uParameter_Hdle,output_handle)
+                paramData = self.update_output_storage( uValue_Hdle,output_handle)
                 idxList   = paramData[1]
                 paramList = paramData[0]
                 curveParameterCount = len(paramList)
@@ -203,13 +203,13 @@ def nodeInitializer():
     typed_Attr.setHidden(True)
     yakisoba.addAttribute( yakisoba.inputRibbon )
     
-    yakisoba.uParameter = nAttr.create( "uParameter", "uPr", OpenMaya.MFnNumericData.kDouble,0 )
+    yakisoba.uValue = nAttr.create( "uValue", "uVl", OpenMaya.MFnNumericData.kDouble,0 )
     nAttr.setArray(1)
     nAttr.setStorable(1)
     nAttr.setKeyable(0)
     nAttr.setHidden(0)
     nAttr.setMin(0.0)
-    yakisoba.addAttribute( yakisoba.uParameter )
+    yakisoba.addAttribute( yakisoba.uValue )
     
     yakisoba.disableRotation = nAttr.create( "disableRotation", "dRot", OpenMaya.MFnNumericData.kBoolean,0 )
     nAttr.setStorable(1)
@@ -253,10 +253,26 @@ def nodeInitializer():
 
     yakisoba.attributeAffects( yakisoba.inputCurve , yakisoba.output )
     yakisoba.attributeAffects( yakisoba.inputRibbon , yakisoba.output)
-    yakisoba.attributeAffects( yakisoba.uParameter , yakisoba.output)
+    yakisoba.attributeAffects( yakisoba.uValue , yakisoba.output)
     yakisoba.attributeAffects( yakisoba.twist , yakisoba.output)
     yakisoba.attributeAffects( yakisoba.disableRotation , yakisoba.output)
-   
+    
+    yakisoba.uParameters = typed_Attr.create( "uParameters", "uuPrm", OpenMaya.MFnData.kDoubleArray)
+    typed_Attr.setStorable(1)
+    typed_Attr.setKeyable(0)
+    typed_Attr.setHidden(1)
+    yakisoba.addAttribute(yakisoba.uParameters) 
+    
+    yakisoba.splineMatrix = typed_Attr.create( "splineMatrix", "sMat", OpenMaya.MFnData.kVectorArray)
+    typed_Attr.setStorable(1)
+    typed_Attr.setKeyable(0)
+    typed_Attr.setHidden(1)
+    yakisoba.addAttribute(yakisoba.splineMatrix) 
+    
+    yakisoba.attributeAffects( yakisoba.inputCurve  , yakisoba.splineMatrix )
+    yakisoba.attributeAffects( yakisoba.inputRibbon , yakisoba.splineMatrix )
+    yakisoba.attributeAffects( yakisoba.uParameters , yakisoba.splineMatrix )
+    yakisoba.attributeAffects( yakisoba.twist       , yakisoba.splineMatrix )
 
 
 def initializePlugin(mobject):

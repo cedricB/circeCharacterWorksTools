@@ -35,10 +35,16 @@ class UI:
         self.pathTxFld      =  ''
         self.dishType       =  ''
         self.dishTabTool    =  ''
+        self.editTool       =  ''
+        self.ImportTab      =  ''
+        self.EditTab        =  ''
+        self.FindTab        =  ''
+        self.swtTab         =  ''
         self.IO =  dishCore.IO()
         self.factory = dishCore.factory()
     def widget(self,widgetParent):
-        mc.columnLayout( adjustableColumn=True, rs=5 ,p=widgetParent)
+        hook = mc.columnLayout( adjustableColumn=True, rs=5 ,p=widgetParent)
+        mc.separator()
         mc.rowLayout(   numberOfColumns=3, 
                         columnWidth2=(80,(self.canvasSize[0]-80-20)),
                         adjustableColumn=2,cl2=('left','both' )  )
@@ -46,11 +52,28 @@ class UI:
         self.pathTxFld  = mc.textField( 'buildEditor_UI_data_dir_txFld',ed=False  )
         mc.setParent('..')
         mc.separator()
+
+        self.swtTab = mc.tabLayout( innerMarginWidth=5, innerMarginHeight=5 )
+        self.ImportTab = mc.frameLayout(   mw=5,labelVisible=False,mh=5 ,p=self.swtTab)
+
+        self.EditTab = mc.frameLayout(   mw=5,labelVisible=False,mh=5 ,p=self.swtTab)
+        mc.text(l='')
+
+        self.FindTab = mc.frameLayout(   mw=5,labelVisible=False,mh=5 ,p=self.swtTab)
+        self.createGourmetTab()
+        mc.textScrollList( self.bentoElements , e=True,ra=True)
+        
+        mc.tabLayout(self.swtTab ,e=True,tabLabelIndex=[1,'Import'])
+        mc.tabLayout(self.swtTab ,e=True,tabLabelIndex=[2,'Edit'])
+        mc.tabLayout(self.swtTab ,e=True,tabLabelIndex=[3,'Find'])
+        
+        mc.tabLayout(self.swtTab,e=True,changeCommand=self.refresh_dishTabs_contents)
+
         anchorDock = mc.rowLayout(    numberOfColumns=2,
                                     columnWidth2=(self.canvasSize[0]/5*2+12, 75 ),
                                     adjustableColumn=2,
                                     columnAlign=(1, 'right'),
-                                    columnAttach=[(1,'both',0), (2,'both',0)] ,w=self.canvasSize[0])
+                                    columnAttach=[(1,'both',0), (2,'both',0)] ,w=self.canvasSize[0],p=self.ImportTab)
 
         self.exposedBentos_UI(anchorDock)
         #------------------------------------------------------------------------------------------------------------
@@ -91,39 +114,18 @@ class UI:
         
         self.dishType  = dishName
         mc.text( self.module,e=True,l=header,font='boldLabelFont')        
-        mc.scrollField( editable=False, wordWrap=True, text=jsondata['moduleInfos'] ,h=120)
+        mc.scrollField( editable=False, wordWrap=True, text=jsondata['moduleInfos'] ,h=140)
         mc.separator()   
-        LimbMenu = mc.optionMenu( label='Limb type          ' )
-        mc.menuItem( label='arm                              ' )
-        mc.menuItem( label='leg                              ' )
-        mc.menuItem( label='spine                            ' )
-        mc.menuItem( label='head                             ' )
-        mc.menuItem( label='neck                             ' )
-        mc.menuItem( label='foot                             ' )
-        mc.menuItem( label='hand                             ' )
+        mc.text( l='name bank') 
+        mc.columnLayout( adjustableColumn=True)
+        LimbMenu = mc.optionMenu( label='',w=224  )
+        mc.menuItem( label='NONE')
+        mc.setParent('..')
+        mc.button(l='Open name composer',h=28)
         mc.optionMenu( LimbMenu ,e=True,changeCommand=partial(self.composePrfX,LimbMenu))
-
-        
-        ArticulationMenu =mc.optionMenu( label='Articulation       ' )    
-        mc.menuItem( label='shoulder                        ' )            
-        mc.menuItem( label='wrist                           ' )
-        mc.menuItem( label='elbow                           ' )
-        mc.menuItem( label='finger                          ' )
-        mc.menuItem( label='knee                            ' )
-        mc.menuItem( label='ankle                           ' )
-        mc.optionMenu( ArticulationMenu ,e=True,changeCommand=partial(self.composePrfX,ArticulationMenu))
-        
-        SideMenu = mc.optionMenu( label='Side                  ' )    
-        mc.menuItem( label='left              *l*            ' )            
-        mc.menuItem( label='right             *r*            ' )
-        mc.menuItem( label='center            *c*            ' )
-        mc.optionMenu( SideMenu ,e=True,changeCommand=partial(self.composePrfX,SideMenu))
 
         self.dishPrfx       =  mc.textField()
         mc.button(l='Import', h=42,c=self.validate_dish_before_merge )        
-        
-        mc.textScrollList( self.bentoElements , e=True,ra=True)
-        self.refresh_dishTabs_contents()
     def validate_dish_before_merge(self,*args):
         prx = mc.textField(  self.dishPrfx ,q=True,tx=True)
         if len(prx)>1:
@@ -133,6 +135,8 @@ class UI:
     def composePrfX (self,menuOpt ,*args):
         prx = mc.textField(  self.dishPrfx ,q=True,tx=True)
         module = mc.optionMenu(menuOpt,q=True,value=True).strip()
+        if module == 'NONE':
+            return
         if len(prx)<1:
             if '*' in module:
                 module = module.split('*')[1]
@@ -142,41 +146,35 @@ class UI:
                 module = module.split('*')[1]
             mc.textField(  self.dishPrfx ,e=True,tx=prx+'_'+module )
     def bentosFactory_UI(self,anchor):
-        mc.columnLayout( adjustableColumn=True,p=anchor )
+        self.dishTabTool = mc.columnLayout( adjustableColumn=True,p=anchor )
         self.module= mc.text( 'CCW_TOOLS_DISHNAME_txFld', l='', h=36  )
-        self.dishTabTool = mc.tabLayout( innerMarginWidth=5, innerMarginHeight=5,h=self.canvasSize[1]-84)
         self.InfosTab = mc.frameLayout(   mw=5,labelVisible=False,mh=5,p=self.dishTabTool )
         mc.text(l='')
 
-        
-        #--------------------------------------------------------
-        mc.frameLayout(  mw=5,labelVisible=False,mh=5,p=self.dishTabTool )
-        mc.text(l='')
-        
-        #--------------------------------------------------------
-        self.gourmetTab = mc.frameLayout(  mw=5,labelVisible=False,mh=5,p=self.dishTabTool )
-        mc.columnLayout( adjustableColumn=True )
-        self.bentoElements =  mc.textScrollList( 'CCW_TOOLS_bentoElements',numberOfRows=18, selectCommand=self.select_installedDish )
-        
-        
-        
-        #######################################################################
-        
-        mc.tabLayout(self.dishTabTool ,e=True,tabLabelIndex=[1,'Infos'])
-        mc.tabLayout(self.dishTabTool ,e=True,tabLabelIndex=[2,'Tools'])
-        mc.tabLayout(self.dishTabTool ,e=True,tabLabelIndex=[3,'Gourmet Manager'])
 
         dishList = self.IO.exposeZipTemplate()
         self.switch_module( os.path.basename(dishList[0]).split('.zip')[0],dishList[0] )         
-        mc.tabLayout(self.dishTabTool ,e=True,changeCommand=self.refresh_dishTabs_contents)
+        
+    def createGourmetTab( self ):
+        self.gourmetTab = mc.frameLayout(  mw=5,labelVisible=False,mh=5,p=self.FindTab)
+        mc.columnLayout( adjustableColumn=True )
+        self.bentoElements =  mc.textScrollList( 'CCW_TOOLS_bentoElements',numberOfRows=22, selectCommand=self.select_installedDish )
     def select_installedDish(self,*args):
         dish = mc.textScrollList( 'CCW_TOOLS_bentoElements',q=True,selectItem=True)
         mc.select(dish,r=True)
     def refresh_dishTabs_contents(self,*args):
-        currentTab = mc.tabLayout(self.dishTabTool ,q=True,selectTabIndex=True)
+        currentTab = mc.tabLayout(self.swtTab ,q=True,selectTabIndex=True)
+
         if currentTab == 3:
-            dishList = self.factory.collect_similar_dish(self.dishType)
-            mc.textScrollList( self.bentoElements ,e=True,ra=True)
-            if len(dishList)>0:
-                for dish in dishList:
-                    mc.textScrollList( self.bentoElements ,e=True,a=dish)
+            mc.textScrollList( self.bentoElements ,e=True,ra=True)     
+            globalDishList = self.IO.exposeZipTemplate()
+            dishes = []
+            for dish in globalDishList:
+                dishName = os.path.basename(dish).split('.zip')[0]
+                dishes.append(dishName)
+       
+            for dishModule in dishes:
+                dishList = self.factory.collect_similar_dish(dishModule)#self.dishType
+                if len(dishList)>0:
+                    for dish in dishList:
+                        mc.textScrollList( self.bentoElements ,e=True,a=dish)

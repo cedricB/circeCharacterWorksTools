@@ -69,6 +69,13 @@ class UI:
             mc.tabLayout(self.tabCtrl_A,e=True,  h=80 )
     #---------------------------------------------------------------------------------------- MAIN UI 
     def widget(self,widgetParent ):
+        wd = mc.columnLayout(widgetParent,q=True,w=True)
+        mc.columnLayout( adjustableColumn=True,p=widgetParent,w=wd )
+        mc.separator()
+        
+        mc.rowLayout(   numberOfColumns=3, 
+                    columnWidth2=(80,(self.canvasSize[0]-80-20)),
+                    adjustableColumn=2,cl2=('left','both' )  )
         mc.text(l=' Current Path :')
         pathTxFld = mc.textField( 'buildDish_UI_data_dir_txFld',ed=False  )
         self.tabCtrl_A = mc.tabLayout( innerMarginWidth=5, innerMarginHeight=5,p=widgetParent  )

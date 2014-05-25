@@ -203,6 +203,10 @@ def nodeInitializer():
     brownie.attributeAffects( brownie.uDensity    , brownie.outLattice )  
     brownie.attributeAffects( brownie.vDensity    , brownie.outLattice )  
     
+    brownie.outCage = typed_Attr.create("outCage", "oCg", OpenMaya.MFnData.kLattice)
+    typed_Attr.setHidden(1)
+    brownie.addAttribute(brownie.outCage)    
+    
     return    
 def initializePlugin(mobject):
     mplugin = OpenMayaMPx.MFnPlugin(mobject, kPluginAuthor, kPluginVersion, "Any")
