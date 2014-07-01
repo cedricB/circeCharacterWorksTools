@@ -457,7 +457,6 @@ class UI:
                         for elem in dataList[key]:
                             mc.textScrollList( UI_Dict[key][0] ,e=True,a=elem)
             mc.textField(fieldRef,e=True,tx=sel[0])
-
     def scanSceneGraph(self ,*args):
         sceneGraph = mc.ls()
         mc.textScrollList(self.bentoElements,e=True,ra=True)

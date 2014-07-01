@@ -20,7 +20,7 @@ if 'dish.data' not in sys.modules.keys():
 
 
 author = 'cedric bazillou 2013'
-version = 0.045
+version = 0.05
 
 class IO:
     def compile_bundle(self,*args):
@@ -39,6 +39,8 @@ class IO:
                 tmpleDir = str(os.path.dirname(templateList[idx]))
                 tmpleRoot = os.path.dirname(inspect.getfile(self.merge))
                 tmpleRoot = r''.join(tmpleRoot)
+                
+                tmpleRoot = os.path.join(tmpleRoot,'lunchBox')
             
                 zipPath = os.path.join(tmpleRoot,tmpleName+'.zip')
                 self.createBundle(tmpleDir,zipPath,tmpleRoot)
@@ -52,6 +54,7 @@ class IO:
         myzip.close()
     def exposeZipTemplate(self):
         modulePath = os.path.dirname(inspect.getfile(self.merge))
+        modulePath = os.path.join(modulePath,'lunchBox')
         filelist= os.listdir(modulePath)
         modulelist = [ f for f in filelist if  f.endswith('.zip')  ]
         for k in range(len(modulelist)):

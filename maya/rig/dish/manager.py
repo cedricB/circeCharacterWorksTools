@@ -273,7 +273,8 @@ class UI:
         self.InfosTab = mc.frameLayout(   mw=5,labelVisible=False,mh=5,p=self.dishTabTool )
         mc.text(l='')
         dishList = self.IO.exposeZipTemplate()
-        self.switch_module( os.path.basename(dishList[0]).split('.zip')[0],dishList[0] )         
+        if dishList is not None and len(dishList)>0:
+            self.switch_module( os.path.basename(dishList[0]).split('.zip')[0],dishList[0] )         
     def createGourmetTab( self ):
         self.gourmetTab = mc.frameLayout(  mw=5,labelVisible=False,mh=5,p=self.FindTab)
         mc.columnLayout( adjustableColumn=True )
