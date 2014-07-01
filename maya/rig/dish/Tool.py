@@ -26,7 +26,7 @@ reload(dishManager)
 reload(dishCore)
 
 author = 'cedric bazillou 2013'
-version = 0.048
+version = 0.055
 
 class UI:
     def __init__(self):

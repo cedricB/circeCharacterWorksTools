@@ -135,7 +135,7 @@ class factory:
                             moduleInfos ):
         if mc.objExists(root)==True:
             flagKey = str(uuid.uuid4().hex)
-            attributeList = ['foodType','moduleInfos','uuID']
+            attributeList = ['foodType','moduleInfos']#,'uuID'
             dataList = [foodType,moduleInfos,flagKey]
             for index, attr in enumerate(attributeList):
                 if mc.attributeQuery(attributeList[index],node=root,ex=True) == False:
@@ -213,7 +213,7 @@ class factory:
         for plugin in plugList:
             if not mc.pluginInfo(plugin,q=True,l=True):
                 mc.loadPlugin(plugin)
-        attributeList = ['foodType','moduleInfos','uuID']
+        attributeList = ['foodType','moduleInfos']#,'uuID'
         chkErrr = 0
         for index, attr in enumerate(attributeList):
             if mc.attributeQuery(attributeList[index],node=root,ex=True) == False:
@@ -280,6 +280,8 @@ class factory:
         linkList =  ['inlink', 'outLink']   
         hub_List =  ['input_useParentHub', 'output_useParentHub'] 
         storage = mc.listConnections(root+'.'+attributeList[0])   
+        
+        print storage,root
         if storage is None:
             attributeList = ['recipe']
             storage = mc.createNode('recipe',n=''.join((root,'_',attributeList[0],'1')))

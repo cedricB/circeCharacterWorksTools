@@ -439,7 +439,7 @@ class UI:
         else:
             self.fill_driverUI(sel[0])
             self.fill_outputUI(sel[0])
-            
+
             UI_Dict = {}
             UI_Dict['moduleInfos']  = [ self.scrollInfo, 1]
             UI_Dict['foodType']     = [ self.foodField, 0]
@@ -457,6 +457,7 @@ class UI:
                         for elem in dataList[key]:
                             mc.textScrollList( UI_Dict[key][0] ,e=True,a=elem)
             mc.textField(fieldRef,e=True,tx=sel[0])
+
     def scanSceneGraph(self ,*args):
         sceneGraph = mc.ls()
         mc.textScrollList(self.bentoElements,e=True,ra=True)
